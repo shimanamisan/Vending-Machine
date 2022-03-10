@@ -1,95 +1,151 @@
-const $ = document
-const target = $.getElementById("target")
+const $ = document;
+const target = $.getElementById("target");
 
+// 初期化処理
+(function (target) {
+    let html = "";
+
+    html += `
+    <div class="vh-100 d-flex justify-content-center align-items-center col-md-11 col-12" >
+        <div class="col-md-8 bg-light py-5">
+            <div class="row justify-content-center">
+                <div id="sliderArea" class="d-flex justify-content-center align-items-center col-md-6 col-12">
+                </div>
+                <div id="buttonArea" class="col-xl-5 col-lg-7 col-md-8 col-12">
+                </div>
+            </div>
+            <div id="pushButtonArea" class="d-flex justify-content-center align-items-center col-12 text-center py-4">
+            </div>
+        </div>
+    </div>
+    `
+    target.innerHTML += html;
+
+}(target)); // 実行時に渡したい引数はこっちに記述
+
+// 飲み物の情報を持たせるクラス
 class Drink {
-    constructor(name, price, image) {
-        this.name = name
-        this.price = price
-        this.image = image
+    constructor(name, price, imgUrl) {
+        this.name = name;
+        this.price = price;
+        this.imgUrl = imgUrl;
     }
 }
 
+// インスタンス化した飲み物
 const drink = [
-    new Drink("コーラ"),
-    new Drink("カルピス"),
-    new Drink("ファンタオレンジ"),
-    new Drink("ファンタグレープ"),
-    new Drink("水"),
-    new Drink("デカビタC"),
-    new Drink("ペプシコーラ"),
-    new Drink("ミックスジュース"),
-    new Drink("コーラ"),
-]
+    new Drink("コーラ", "100", "https://1.bp.blogspot.com/-4wZVSlL6iwU/X9Gh2gfkGPI/AAAAAAABcxo/5k6If1oQbKMJR6JiZGHQQ5spYWmVbgSOwCNcBGAsYHQ/s647/drink_cola_zero_petbottle.png"),
+    new Drink("ミルクティー", "150", "https://1.bp.blogspot.com/-8Sg7f-1S4mQ/X5OcRnFR2hI/AAAAAAABb7o/eZCm6DJdWrQ3htv6n-4dki43Td5UuGRnQCNcBGAsYHQ/s537/drink_tea_chai.png"),
+    new Drink("ピンクミルク", "80", "https://1.bp.blogspot.com/-LnNm3StOzM0/X9GYBpPkMdI/AAAAAAABcsM/AKIfE3Y0hicvt_sbFu5o1XqL1LnmK3f7ACNcBGAsYHQ/s664/drink_pink_milk.png"),
+    new Drink("さくらんぼ", "200", "https://food-foto.jp/free/img/images_big/dri0017-054.jpg"),
+    new Drink("ウーロン茶", "100", "https://food-foto.jp/free/img/images_big/fd401351.jpg"),
+    new Drink("ビール", "250", "https://food-foto.jp/free/img/images_big/fd401366.jpg"),
+    new Drink("ホットコーヒー", "150", "https://food-foto.jp/free/img/images_big/dri0005-001.jpg"),
+    new Drink("焼酎（ロック）", "200", "https://food-foto.jp/free/img/images_big/fd401478.jpg"),
+    new Drink("ワイン", "300", "https://food-foto.jp/free/img/images_big/fd401455.jpg"),
+];
 
-class SliderApplication {
-    constructor() {
-
-    }
-
-    static createContainer() {
-        let container = `<div class="vh-100 d-flex justify-content-center align-items-center col-md-11 col-12" >
-                            <div class="col-md-8 bg-light py-5">
-                                <div class="row justify-content-center">`
-
-        container += this.createSubElement()
-
-        container += `          </div>
-                                <div class="col-md-8 col-12 text-center py-4">
-                                    <button class="btn btn-push">PUSH</button>
-                                </div>
-                            </div>
-                        </div>`
-        return container
-    }
-
-    static createSubElement() {
-        let subContainer = `
-            <div class="col-md-6 col-12">
-            <div class="slider-container">
-                <img
-                    class="align-middle"
-                    src="https://placehold.jp/3d4070/ffffff/300x200.png"
-                    alt=""
-                    srcset=""
-                />
-            </div>
-            </div>
-            <div class="col-xl-5 col-lg-7 col-md-8 col-12">
-                <div class="row justify-content-center">
-                    <h3 class="col-md-2 text-center">1</h3>
-                    <div class="col-md-8">
-                        <p>Drink Name</p>
-                        <p>Drink Price</p>
-                    </div>
-                </div>
-                <div class="row justify-content-center py-3">
-                    <div id="btnArea" class="row justify-content-center col-lg-6 col-md-9">
-                    </div>
-                </div>
-            </div>`
-
-        return subContainer
-    }
+// アクセスしたいDOMをまとめたオブジェクト
+const targetDomLists = {
+    sliderArea: $.getElementById("sliderArea"),
+    buttonArea: $.getElementById("buttonArea"),
+    pushButtonArea: $.getElementById("pushButtonArea"),
 }
 
-class Button {
-    static createButton() {
-        const $ = document
-        const buttonContainer = $.createElement("div")
-        buttonContainer.classList.add("row", "justify-content-center", "py-3")
+class SliderArea {
 
-        let buttonHtmlStr = ""
+    static initSliderArea() {
+        this.createSliderArea(drink);
+        this.createBushButtonArea();
+    }
 
-        for (let i = 1; i <= drink.length; i++) {
-            buttonHtmlStr += `<button class="btn btn-custom mr-2 mb-2">${i}</button>`
+    static createSliderArea(drink) {
+
+        const sliderContainer = $.createElement("div");
+
+        sliderContainer.classList.add("slider-container", "d-flex", "justify-content-center", "align-items-center", "slider-img");
+
+        for (let i = 0; i < drink.length; i++) {
+            const sliderImg = $.createElement("img");
+            sliderImg.setAttribute("src", drink[i].imgUrl);
+            sliderImg.classList.add("slider-img");
+            sliderContainer.append(sliderImg);
         }
 
-        return buttonHtmlStr;
+        targetDomLists.sliderArea.append(sliderContainer);
+    }
+
+    static createBushButtonArea() {
+
+        const pushButton = $.createElement("button");
+        pushButton.innerHTML = "PUSH";
+        pushButton.classList.add("btn", "btn-push");
+        // Drinkの情報を出力するイベントを追加
+        pushButton.addEventListener("click", function () {
+            Action.viewCurrentDrinkInfo();
+        });
+
+        targetDomLists.pushButtonArea.append(pushButton);
+    }
+}
+
+class Action {
+    static viewCurrentDrinkInfo(index) {
+        alert("click!");
+    }
+}
+
+class ButtonArea {
+    static initButtonArea(drink) {
+        this.createDrinkInfo(drink);
+        this.createButtonArea(drink);
+    }
+    static createDrinkInfo(drink) {
+
+        const drinkInfoHtml = `
+            <div class="row justify-content-center">
+                <h3 class="col-md-2 text-center">1</h3>
+                <div class="col-md-8">
+                    <p>Drink Name: ${drink[0].name}</p>
+                    <p>Drink Price ${drink[0].price}</p>
+                </div>
+            </div>
+        `
+        targetDomLists.buttonArea.innerHTML += drinkInfoHtml;
+
+
+
+    }
+
+    static createButtonArea(drink) {
+        const parentDom = $.createElement("div");
+        parentDom.classList.add("row", "justify-content-center", "py-3");
+
+        const childDom = $.createElement("div");
+        childDom.classList.add("col-lg-7", "col-md-9");
+
+        for (let i = 1; i <= drink.length; i++) {
+            childDom.innerHTML += `
+            <button class="btn btn-custom mr-2 mb-2">
+            ${i}
+            </button>`
+        }
+
+        parentDom.append(childDom);
+        targetDomLists.buttonArea.append(parentDom);
+
+        targetDomLists.buttonArea.querySelectorAll(".btn").forEach((item) => {
+            item.addEventListener("click", function () {
+                ButtonArea.drinkSlider()
+            })
+        })
+    }
+
+    static drinkSlider() {
+        console.log("click!!")
     }
 }
 
 
-
-target.innerHTML += SliderApplication.createContainer();
-
-$.getElementById("btnArea").innerHTML += Button.createButton()
+SliderArea.initSliderArea();
+ButtonArea.initButtonArea(drink)
