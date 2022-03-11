@@ -9,6 +9,8 @@ const target = $.getElementById("target");
     <div class="vh-100 d-flex justify-content-center align-items-center col-md-11 col-12" >
         <div class="col-md-8 bg-light py-5">
             <div class="row justify-content-center">
+                <div id="sliderData" class="slider-data d-none col-12">
+                </div>
                 <div id="sliderArea" class="d-flex justify-content-center align-items-center col-md-6 col-12">
                 </div>
                 <div id="buttonArea" class="col-xl-5 col-lg-7 col-md-8 col-12">
@@ -47,6 +49,7 @@ const drink = [
 
 // アクセスしたいDOMをまとめたオブジェクト
 const targetDomLists = {
+    sliderData: $.getElementById("sliderData"),
     sliderArea: $.getElementById("sliderArea"),
     buttonArea: $.getElementById("buttonArea"),
     pushButtonArea: $.getElementById("pushButtonArea"),
@@ -54,25 +57,44 @@ const targetDomLists = {
 
 class SliderArea {
 
-    static initSliderArea() {
-        this.createSliderArea(drink);
+    // スライドさせる画像要素を格納する配列
+    static sliderDomLists = [];
+
+    static initSliderArea(drink) {
+        this.creataSliderDasta(drink);
+        this.createSliderArea();
         this.createBushButtonArea();
     }
 
-    static createSliderArea(drink) {
-
-        const sliderContainer = $.createElement("div");
-
-        sliderContainer.classList.add("slider-container", "d-flex", "justify-content-center", "align-items-center", "slider-img");
+    static creataSliderDasta(drink) {
 
         for (let i = 0; i < drink.length; i++) {
             const sliderImg = $.createElement("img");
             sliderImg.setAttribute("src", drink[i].imgUrl);
-            sliderImg.classList.add("slider-img");
-            sliderContainer.append(sliderImg);
+            sliderImg.classList.add("slider-item", "slider-img");
+            targetDomLists.sliderData.append(sliderImg);
         }
 
-        targetDomLists.sliderArea.append(sliderContainer);
+    }
+
+    static createSliderArea() {
+
+        const mainDiv = $.createElement("div");
+        const extraDiv = mainDiv.cloneNode(true);
+        mainDiv.classList.add("main", "full-width");
+        extraDiv.classList.add("extra", "full-width");
+
+        const sliderData = $.querySelectorAll(".slider-item");
+        sliderData.forEach((elm) => {
+            this.sliderDomLists.push(elm);
+        });
+
+        mainDiv.setAttribute("data-index", "0");
+
+        mainDiv.append(this.sliderDomLists[0]);
+
+        targetDomLists.sliderArea.append(mainDiv);
+        targetDomLists.sliderArea.append(extraDiv);
     }
 
     static createBushButtonArea() {
@@ -83,6 +105,8 @@ class SliderArea {
         // Drinkの情報を出力するイベントを追加
         pushButton.addEventListener("click", function () {
             Action.viewCurrentDrinkInfo();
+            Action.sliderJump(1);
+            Action.sliderJump(-1);
         });
 
         targetDomLists.pushButtonArea.append(pushButton);
@@ -92,6 +116,57 @@ class SliderArea {
 class Action {
     static viewCurrentDrinkInfo(index) {
         alert("click!");
+    }
+
+    static sliderJump(steps) {
+
+        let index = parseInt($.querySelector(".main").getAttribute("data-index"));
+        let currentElement = SliderArea.sliderDomLists[index];
+
+        index += steps;
+
+        if (index < 0) index = SliderArea.sliderDomLists[index]
+        else if (index >= SliderArea.sliderDomLists.length) index = 0;
+
+        let nextElement = SliderArea.sliderDomLists[index];
+
+        const mainDiv = $.querySelector(".main");
+        mainDiv.setAttribute("data-index", index.toString());
+
+        this.animateMain(currentElement, nextElement, "right");
+    }
+
+    static animateMain(currentElement, nextElement, animationType) {
+        const mainDiv = $.querySelector(".main");
+        const extraDiv = $.querySelector(".extra");
+
+        // extraに今の要素を入れる
+        // extraはスライドのエフェクトなので消滅する今の要素を入れる
+        extraDiv.innerHTML = "";
+        extraDiv.append(currentElement);
+        console.log(currentElement)
+
+        // mainDivに次の要素を入れる
+        mainDiv.innerHTML = "";
+        mainDiv.append(nextElement);
+        console.log(nextElement)
+
+        // mainDivが出てくるようにexpendのアニメーションをつける
+        // もう一度、上のCSSのアニメーションを確認してみよう
+        mainDiv.classList.add("expand-animation");
+        extraDiv.classList.add("deplete-animation");
+
+        if (animationType === "right") {
+            targetDomLists.sliderArea.innerHTML = "";
+            // 次のmainを後に入れる
+            // extraDivが消えてmainDivが出現するアニメーション
+            targetDomLists.sliderArea.append(extraDiv);
+            targetDomLists.sliderArea.append(mainDiv);
+        } else if (animationType === "left") {
+            // extraと反対側にアニメーションするmainを先に持っていく
+            targetDomLists.sliderArea.append(mainDiv);
+            targetDomLists.sliderArea.append(extraDiv);
+        }
     }
 }
 
@@ -112,9 +187,6 @@ class ButtonArea {
             </div>
         `
         targetDomLists.buttonArea.innerHTML += drinkInfoHtml;
-
-
-
     }
 
     static createButtonArea(drink) {
@@ -134,18 +206,15 @@ class ButtonArea {
         parentDom.append(childDom);
         targetDomLists.buttonArea.append(parentDom);
 
-        targetDomLists.buttonArea.querySelectorAll(".btn").forEach((item) => {
+        targetDomLists.buttonArea.querySelectorAll(".btn").forEach((item, index) => {
             item.addEventListener("click", function () {
-                ButtonArea.drinkSlider()
+                Action.sliderJump(index + 1);
             })
         })
     }
 
-    static drinkSlider() {
-        console.log("click!!")
-    }
 }
 
 
-SliderArea.initSliderArea();
-ButtonArea.initButtonArea(drink)
+SliderArea.initSliderArea(drink);
+ButtonArea.initButtonArea(drink);
