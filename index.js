@@ -120,20 +120,29 @@ class Action {
 
     static sliderJump(steps) {
 
+        let animationType = "";
         let index = parseInt($.querySelector(".main").getAttribute("data-index"));
+
+        if(steps > index) animationType = "left";
+        else animationType = "right";
+
         let currentElement = SliderArea.sliderDomLists[index];
 
         index += steps;
 
-        if (index < 0) index = SliderArea.sliderDomLists[index]
+        console.log(`index += steps: ${index}`);
+
+        if (index < 0) index = SliderArea.sliderDomLists.length - 1;
         else if (index >= SliderArea.sliderDomLists.length) index = 0;
+
+        console.log(index)
 
         let nextElement = SliderArea.sliderDomLists[index];
 
         const mainDiv = $.querySelector(".main");
-        mainDiv.setAttribute("data-index", index.toString());
+        mainDiv.setAttribute("data-index", steps.toString());
 
-        this.animateMain(currentElement, nextElement, "right");
+        this.animateMain(currentElement, nextElement, animationType)
     }
 
     static animateMain(currentElement, nextElement, animationType) {
@@ -208,7 +217,7 @@ class ButtonArea {
 
         targetDomLists.buttonArea.querySelectorAll(".btn").forEach((item, index) => {
             item.addEventListener("click", function () {
-                Action.sliderJump(index + 1);
+                Action.sliderJump(index);
             })
         })
     }
