@@ -11,7 +11,7 @@ const target = $.getElementById("target");
             <div class="row justify-content-center">
                 <div id="sliderData" class="slider-data d-none col-12">
                 </div>
-                <div id="sliderArea" class="d-flex justify-content-center align-items-center col-md-6 col-12">
+                <div id="sliderArea" class="d-flex justify-content-center align-items-center col-md-5 col-12">
                 </div>
                 <div id="buttonArea" class="col-xl-5 col-lg-7 col-md-8 col-12">
                 </div>
@@ -80,7 +80,7 @@ class SliderArea {
     static createSliderArea() {
 
         const mainDiv = $.createElement("div");
-        const extraDiv = mainDiv.cloneNode(true);
+        const extraDiv = $.createElement("div");
         mainDiv.classList.add("main", "full-width");
         extraDiv.classList.add("extra", "full-width");
 
@@ -105,8 +105,6 @@ class SliderArea {
         // Drinkの情報を出力するイベントを追加
         pushButton.addEventListener("click", function () {
             Action.viewCurrentDrinkInfo();
-            Action.sliderJump(1);
-            Action.sliderJump(-1);
         });
 
         targetDomLists.pushButtonArea.append(pushButton);
@@ -114,8 +112,14 @@ class SliderArea {
 }
 
 class Action {
-    static viewCurrentDrinkInfo(index) {
-        alert("click!");
+    static viewCurrentDrinkInfo() {
+        let index = parseInt($.querySelector(".main").getAttribute("data-index"));
+        let drinkName = drink[index].name;
+        let price = drink[index].price;
+
+        alert(
+            `Drink: ${drinkName}
+Price: $${price}`);
     }
 
     static sliderJump(steps) {
@@ -123,45 +127,45 @@ class Action {
         let animationType = "";
         let index = parseInt($.querySelector(".main").getAttribute("data-index"));
 
-        if(steps > index) animationType = "left";
+        if (steps > index) animationType = "left";
         else animationType = "right";
 
-        let currentElement = SliderArea.sliderDomLists[index];
+        let currentElement = this.fetchSliderImage(index);
 
-        index += steps;
+        // currentElementを取得後にインデックスを更新
+        index = steps;
 
-        console.log(`index += steps: ${index}`);
-
-        if (index < 0) index = SliderArea.sliderDomLists.length - 1;
-        else if (index >= SliderArea.sliderDomLists.length) index = 0;
-
-        console.log(index)
-
-        let nextElement = SliderArea.sliderDomLists[index];
+        let nextElement = this.fetchSliderImage(index);
 
         const mainDiv = $.querySelector(".main");
         mainDiv.setAttribute("data-index", steps.toString());
 
+        this.changeDrinkInfo(index);
         this.animateMain(currentElement, nextElement, animationType)
+    }
+
+    static fetchSliderImage(index) {
+
+        if (index === 0) {
+            return `<img src="${drink[0].imgUrl}" class="slider-item slider-img">`
+        } else {
+            return `<img src="${drink[index].imgUrl}" class="slider-item slider-img">`
+        }
     }
 
     static animateMain(currentElement, nextElement, animationType) {
         const mainDiv = $.querySelector(".main");
         const extraDiv = $.querySelector(".extra");
 
+        // mainDivに次の要素を入れる
+        mainDiv.innerHTML = "";
+        mainDiv.innerHTML = nextElement;
+
         // extraに今の要素を入れる
         // extraはスライドのエフェクトなので消滅する今の要素を入れる
         extraDiv.innerHTML = "";
-        extraDiv.append(currentElement);
-        console.log(currentElement)
+        extraDiv.innerHTML = currentElement;
 
-        // mainDivに次の要素を入れる
-        mainDiv.innerHTML = "";
-        mainDiv.append(nextElement);
-        console.log(nextElement)
-
-        // mainDivが出てくるようにexpendのアニメーションをつける
-        // もう一度、上のCSSのアニメーションを確認してみよう
         mainDiv.classList.add("expand-animation");
         extraDiv.classList.add("deplete-animation");
 
@@ -172,23 +176,39 @@ class Action {
             targetDomLists.sliderArea.append(extraDiv);
             targetDomLists.sliderArea.append(mainDiv);
         } else if (animationType === "left") {
+            targetDomLists.sliderArea.innerHTML = "";
             // extraと反対側にアニメーションするmainを先に持っていく
             targetDomLists.sliderArea.append(mainDiv);
             targetDomLists.sliderArea.append(extraDiv);
         }
+
+    }
+
+    static changeDrinkInfo(index) {
+        let target = $.getElementById("drinkInfoArea");
+
+        target.innerHTML = `
+        <div id="drinkInfoArea" class="col-12 row justify-content-center">
+            <h3 class="col-md-2 text-center drinkInfo__title">${index + 1}</h3>
+            <div class="col-md-8">
+                <p>Drink Name: ${drink[index].name}</p>
+                <p>Drink Price ${drink[index].price}</p>
+            </div>
+        </div>
+    `
     }
 }
 
 class ButtonArea {
-    static initButtonArea(drink) {
+    static initButtonArea() {
         this.createDrinkInfo(drink);
         this.createButtonArea(drink);
     }
     static createDrinkInfo(drink) {
 
         const drinkInfoHtml = `
-            <div class="row justify-content-center">
-                <h3 class="col-md-2 text-center">1</h3>
+            <div id="drinkInfoArea" class="col-12 row justify-content-center">
+                <h3 class="col-md-2 text-center drinkInfo__title">1</h3>
                 <div class="col-md-8">
                     <p>Drink Name: ${drink[0].name}</p>
                     <p>Drink Price ${drink[0].price}</p>
@@ -203,7 +223,7 @@ class ButtonArea {
         parentDom.classList.add("row", "justify-content-center", "py-3");
 
         const childDom = $.createElement("div");
-        childDom.classList.add("col-lg-7", "col-md-9");
+        childDom.classList.add("col-lg-7", "col-md-9", "col-7");
 
         for (let i = 1; i <= drink.length; i++) {
             childDom.innerHTML += `
@@ -226,4 +246,4 @@ class ButtonArea {
 
 
 SliderArea.initSliderArea(drink);
-ButtonArea.initButtonArea(drink);
+ButtonArea.initButtonArea();
